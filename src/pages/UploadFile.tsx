@@ -22,6 +22,7 @@ import {
 import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import { appRoutes } from "../routing/appRoutes";
+import { fileUploadService } from "../services/fileUpload.service";
 
 const UploadFile: React.FC = () => {
   const theme = useTheme();
@@ -43,7 +44,6 @@ const UploadFile: React.FC = () => {
     onDrop,
     accept: {
       "audio/*": [".mp3", ".wav", ".m4a"],
-      "video/*": [".mp4", ".mov"],
     },
     maxFiles: 1,
     multiple: false,
@@ -65,20 +65,11 @@ const UploadFile: React.FC = () => {
     setUploadProgress(0);
     setUploadError(null);
     setUploadSuccess(false);
-
-    // Simulate upload progress (replace with actual API call)
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          navigate(appRoutes.processingProgress);
-          clearInterval(interval);
-          setIsUploading(false);
-          setUploadSuccess(true);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 500);
+    const reponse = await fileUploadService({ file: files });
+    if (reponse.isSuccess) {
+      navigate(appRoutes.processingProgress);
+    }
+    setIsUploading(false);
   };
 
   return (
