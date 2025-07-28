@@ -19,6 +19,8 @@ import {
   Language as LanguageIcon,
   Face as FaceIcon,
 } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { appRoutes } from "../routing/appRoutes";
 
 interface GradientTextProps {
   children: React.ReactNode;
@@ -32,7 +34,7 @@ const GradientText: React.FC<GradientTextProps> = ({ children }) => (
       WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent",
       display: "inline",
-      fontSize:50
+      fontSize: 50
     }}
   >
     {children}
@@ -122,7 +124,7 @@ const features: Feature[] = [
 
 const Home: React.FC = () => {
   const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down("sm"));
-
+  const navigation = useNavigate()
   return (
     <Container maxWidth="lg" sx={{ py: isMobile ? 4 : 8 }}>
       <Box textAlign="center" mb={6}>
@@ -159,6 +161,7 @@ const Home: React.FC = () => {
               },
               transition: "all 0.2s",
             }}
+            onClick={() => navigation(appRoutes.uploadFile)}
           >
             Get Started
           </Button>

@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import AppRouting from "./AppRouting";
+import AppRouting from "./routing/AppRouting";
 
 const theme = createTheme({
   palette: {
