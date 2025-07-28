@@ -22,6 +22,8 @@ import {
   Subtitles as SubtitlesIcon,
   CheckCircle as CheckCircleIcon,
   ArrowBack as ArrowBackIcon,
+  PlayArrow as PlayArrowIcon,
+  Pause as PauseIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
@@ -36,6 +38,12 @@ const ProcessingProgress: React.FC = () => {
     2: 0, // Language Identification
     3: 0, // Speech Recognition
   });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  // This would typically come from props or state management
+  const audioFileUrl = "https://example.com/audio-file.mp3"; // Replace with your actual audio URL
 
   const steps = [
     {
@@ -59,6 +67,9 @@ const ProcessingProgress: React.FC = () => {
       description: "Converting speech to text",
     },
   ];
+
+  // Audio player ref
+  const audioRef = React.useRef<HTMLAudioElement>(null);
 
   // Simulate processing progress
   useEffect(() => {
@@ -89,12 +100,43 @@ const ProcessingProgress: React.FC = () => {
     return "pending";
   };
 
+  const togglePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
   return (
     <Container maxWidth="md" sx={{ py: isMobile ? 3 : 6 }}>
       <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mb: 3 }}>
         Back
       </Button>
-      <br />
+      
+    <br/>
+
       <Typography
         variant="h4"
         component="h1"
@@ -115,7 +157,52 @@ const ProcessingProgress: React.FC = () => {
         We're analyzing your media file. This may take a few minutes depending
         on file size.
       </Typography>
-
+  {/* Audio Player Section */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          mb: 4,
+          border: `1px solid ${theme.palette.divider}`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2
+        }}
+      >
+        <Typography variant="h6" component="h2">
+          Audio Preview
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Button
+            variant="contained"
+            onClick={togglePlayPause}
+            startIcon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+          >
+            {isPlaying ? 'Pause' : 'Play'}
+          </Button>
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="body2">
+              {formatTime(currentTime)}
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={duration ? (currentTime / duration) * 100 : 0}
+              sx={{ flexGrow: 1, height: 8 }}
+            />
+            <Typography variant="body2">
+              {formatTime(duration)}
+            </Typography>
+          </Box>
+        </Box>
+        <audio
+          ref={audioRef}
+          src={audioFileUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={() => setIsPlaying(false)}
+          hidden
+        />
+      </Paper>
       <Paper
         elevation={0}
         sx={{ p: 3, mb: 4, border: `1px solid ${theme.palette.divider}` }}
