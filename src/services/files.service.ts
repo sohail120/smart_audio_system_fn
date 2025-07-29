@@ -9,7 +9,7 @@ import { apiUrls } from "./apiUrls";
 
 const uploadFile = async (
   payload: IFileUploadServiceRequest
-): Promise<IResponse<IFileUploadResponse>> => {
+): Promise<IResponse<IFileUploadResponse|null>> => {
   const formData = new FormData();
   formData.append("file", payload.file); // Assuming file is an array, we take the first file
   formData.append("name", payload.name);
@@ -22,13 +22,13 @@ const uploadFile = async (
     return { isSuccess: true, data: response };
   } catch (error) {
     console.error("uploadFile", error);
-    return { isSuccess: false, data: null as any }; // Return null for data on error
+    return { isSuccess: false, data: null }; // Return null for data on error
   }
 };
 
 const getFiles = async (
   id: string
-): Promise<IResponse<IFileUploadResponse>> => {
+): Promise<IResponse<IFileUploadResponse|null>> => {
   try {
     const response: IFileUploadResponse = await apiClient.get(
       `${apiUrls.getById}/${id}`
@@ -36,13 +36,13 @@ const getFiles = async (
     return { isSuccess: true, data: response };
   } catch (error) {
     console.error("uploadFile", error);
-    return { isSuccess: false, data: null as any }; // Return null for data on error
+    return { isSuccess: false, data: null }; // Return null for data on error
   }
 };
 const changeFileStatuts = async (
   status: string,
   id: string,
-): Promise<IResponse<IFileUploadResponse>> => {
+): Promise<IResponse<IFileUploadResponse|null>> => {
   try {
     let url = "";
     switch (Number(status)) {
@@ -75,7 +75,7 @@ const changeFileStatuts = async (
     return { isSuccess: true, data: response };
   } catch (error) {
     console.error("uploadFile", error);
-    return { isSuccess: false, data: null as any }; // Return null for data on error
+    return { isSuccess: false, data: null  }; // Return null for data on error
   }
 };
 

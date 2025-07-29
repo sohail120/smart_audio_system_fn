@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 
 const apiClient = axios.create({
@@ -8,7 +9,7 @@ const apiClient = axios.create({
 
 
 
-apiClient.interceptors.request.use((request: any) => {
+apiClient.interceptors.request.use((request:any)=> {
   try {
     if (typeof FormData !== "undefined" && request.data instanceof FormData) {
       request.headers["Content-Type"] = "multipart/form-data";
@@ -22,13 +23,13 @@ apiClient.interceptors.request.use((request: any) => {
 });
 
 apiClient.interceptors.response.use(
-  (response: any) => {
+  (response) => {
     if (response.data.error) {
       return Promise.reject(response.data);
     }
     return Promise.resolve(response.data);
   },
-  (error: any) => {
+  (error) => {
     if (error?.response?.data) {
       console.log({ error: error });
       return Promise.reject(error.response?.data);
