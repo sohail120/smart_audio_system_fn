@@ -22,6 +22,7 @@ import {
   CheckCircle as CheckCircleIcon,
   ArrowBack as ArrowBackIcon,
   PlayArrow as PlayArrowIcon,
+  Translate,
 } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import useFetchFilesById from "../hook/useFetchFilesById";
@@ -57,6 +58,15 @@ const ProcessingProgress: React.FC = () => {
       doneStatus: STATUS_MAPPING.done_speaker_diarization,
     },
     {
+      label: "Speech Recognition",
+      icon: <SubtitlesIcon />,
+      description: "Converting speech to text",
+      startStatus: STATUS_MAPPING.done_language_identification,
+      progressStatus: STATUS_MAPPING.processing_speech_recognition,
+      doneStatus: STATUS_MAPPING.done_speech_recognition,
+    },
+
+    {
       label: "Language Identification",
       icon: <LanguageIcon />,
       description: "Detecting languages in each segment",
@@ -64,13 +74,14 @@ const ProcessingProgress: React.FC = () => {
       progressStatus: STATUS_MAPPING.processing_language_identification,
       doneStatus: STATUS_MAPPING.done_language_identification,
     },
+
     {
-      label: "Speech Recognition",
-      icon: <SubtitlesIcon />,
-      description: "Converting speech to text",
-      startStatus: STATUS_MAPPING.done_language_identification,
-      progressStatus: STATUS_MAPPING.processing_speech_recognition,
-      doneStatus: STATUS_MAPPING.done_speech_recognition,
+      label: "Neural Translation",
+      icon: <Translate />, // You'll need to import this icon
+      description: "Translate transcribed text to English with speaker segmentation.",
+      startStatus: STATUS_MAPPING.done_speech_recognition,
+      progressStatus: STATUS_MAPPING.processing_neural_translation,
+      doneStatus: STATUS_MAPPING.done_neural_translation,
     },
   ];
 
@@ -262,7 +273,7 @@ const ProcessingProgress: React.FC = () => {
         <Button
           variant="contained"
           size="large"
-          disabled={currentStatus !== STATUS_MAPPING.done}
+          disabled={currentStatus !== STATUS_MAPPING.done_neural_translation}
           sx={{ px: 4, py: 1.5 }}
           onClick={() => navigate("/results")}
         >

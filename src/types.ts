@@ -27,15 +27,14 @@ export enum STATUS_MAPPING {
   done_speech_recognition = 6,
   processing_language_identification = 7,
   done_language_identification = 8,
-  done = 9,
+  processing_neural_translation = 9,
+  done_neural_translation = 10,
 }
 
 export interface IAudioPlayerProps {
   data: IFileUploadResponse | null;
   theme: Theme;
 }
-
-
 
 export enum STATUS_API {
   processing_speaker_identification = 1,
@@ -48,4 +47,3 @@ export enum STATUS_API {
   done_language_identification = 8,
   done = 9,
 }
-

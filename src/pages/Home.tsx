@@ -18,6 +18,7 @@ import {
   Subtitles as SubtitlesIcon,
   Language as LanguageIcon,
   Face as FaceIcon,
+  Info,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { appRoutes } from "../routing/appRoutes";
@@ -124,9 +125,9 @@ const features: Feature[] = [
 
 const Home: React.FC = () => {
   const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down("sm"));
-  const navigation = useNavigate()
+  const navigate = useNavigate()
   return (
-    <Container maxWidth="lg" sx={{ py: isMobile ? 4 : 8 }}>
+   <Container maxWidth="lg" sx={{ py: isMobile ? 4 : 8 }}>
       <Box textAlign="center" mb={6}>
         <Typography
           variant="h3"
@@ -146,25 +147,50 @@ const Home: React.FC = () => {
           Language-Agnostic Speaker Identification, Diarization, Transcription, and Translation
         </Typography>
         <Box mt={8} textAlign="center">
-          <Button
-            variant="contained"
-            size="large"
-            sx={{
-              px: 6,
-              py: 1.5,
-              fontWeight: "bold",
-              borderRadius: 2,
-              boxShadow: 2,
-              "&:hover": {
-                transform: "translateY(-2px)",
-                boxShadow: 4,
-              },
-              transition: "all 0.2s",
-            }}
-            onClick={() => navigation(appRoutes.uploadFile)}
+          <Stack 
+            direction={isMobile ? "column" : "row"} 
+            spacing={2} 
+            justifyContent="center"
           >
-            Get Started
-          </Button>
+            <Button
+              variant="contained"
+              size="large"
+              sx={{
+                px: 6,
+                py: 1.5,
+                fontWeight: "bold",
+                borderRadius: 2,
+                boxShadow: 2,
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: 4,
+                },
+                transition: "all 0.2s",
+              }}
+              onClick={() => navigate(appRoutes.uploadFile)}
+            >
+              Get Started
+            </Button>
+            {/* <Button
+              variant="outlined"
+              size="large"
+              startIcon={<Info />}
+              sx={{
+                px: 6,
+                py: 1.5,
+                fontWeight: "bold",
+                borderRadius: 2,
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: 2,
+                },
+                transition: "all 0.2s",
+              }}
+              onClick={() => navigate(appRoutes.about)}
+            >
+              About Us
+            </Button> */}
+          </Stack>
         </Box>
       </Box>
 
@@ -172,13 +198,11 @@ const Home: React.FC = () => {
 
       <Grid container spacing={4}>
         {features.map((feature, idx) => (
-          <Grid size={6}>
+          <Grid size={6} key={idx}>
             <FeatureCard {...feature} />
           </Grid>
         ))}
       </Grid>
-
-
     </Container>
   );
 };
