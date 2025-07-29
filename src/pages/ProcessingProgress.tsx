@@ -1,5 +1,5 @@
 // src/pages/ProcessingProgress.tsx
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -7,7 +7,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepContent,
   Paper,
   Button,
   LinearProgress,
@@ -23,119 +22,110 @@ import {
   CheckCircle as CheckCircleIcon,
   ArrowBack as ArrowBackIcon,
   PlayArrow as PlayArrowIcon,
-  Pause as PauseIcon,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import useFetchFilesById from "../hook/useFetchFilesById";
+import AudioPlayer from "../components/AudioPlayer";
+import { STATUS_MAPPING } from "../types";
+import { changeFileStatuts } from "../services/files.service";
+
+// Simplified step status type
+type StepStatus = "pending" | "start" | "progress" | "done";
 
 const ProcessingProgress: React.FC = () => {
   const theme = useTheme();
+  const { id } = useParams();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(0);
-  const [progress, setProgress] = useState<{ [key: number]: number }>({
-    0: 0, // Speaker Identification
-    1: 0, // Speaker Diarization
-    2: 0, // Language Identification
-    3: 0, // Speech Recognition
-  });
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  // This would typically come from props or state management
-  const audioFileUrl = "https://example.com/audio-file.mp3"; // Replace with your actual audio URL
+  const { data } = useFetchFilesById(id || "");
 
   const steps = [
     {
       label: "Speaker Identification",
       icon: <FaceIcon />,
       description: "Identifying and matching speakers in your audio file",
+      startStatus: STATUS_MAPPING.upload,
+      progressStatus: STATUS_MAPPING.processing_speaker_identification,
+      doneStatus: STATUS_MAPPING.done_speaker_identification,
     },
     {
       label: "Speaker Diarization",
       icon: <VoiceIcon />,
       description: "Segmenting audio by speaker boundaries",
+      startStatus: STATUS_MAPPING.done_speaker_identification,
+      progressStatus: STATUS_MAPPING.processing_speaker_diarization,
+      doneStatus: STATUS_MAPPING.done_speaker_diarization,
     },
     {
       label: "Language Identification",
       icon: <LanguageIcon />,
       description: "Detecting languages in each segment",
+      startStatus: STATUS_MAPPING.done_speaker_diarization,
+      progressStatus: STATUS_MAPPING.processing_language_identification,
+      doneStatus: STATUS_MAPPING.done_language_identification,
     },
     {
       label: "Speech Recognition",
       icon: <SubtitlesIcon />,
       description: "Converting speech to text",
+      startStatus: STATUS_MAPPING.done_language_identification,
+      progressStatus: STATUS_MAPPING.processing_speech_recognition,
+      doneStatus: STATUS_MAPPING.done_speech_recognition,
     },
   ];
 
-  // Audio player ref
-  const audioRef = React.useRef<HTMLAudioElement>(null);
+  // Get current status as a number
+  const currentStatus = data?.status
+    ? Number(data.status)
+    : STATUS_MAPPING.upload;
 
-  // Simulate processing progress
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = { ...prev };
-        if (newProgress[activeStep] < 100) {
-          newProgress[activeStep] += Math.floor(Math.random() * 10) + 5;
-          if (newProgress[activeStep] > 100) newProgress[activeStep] = 100;
-        } else if (activeStep < steps.length - 1) {
-          setActiveStep(activeStep + 1);
-        }
-        return newProgress;
-      });
-    }, 1000);
+  // Determine the status of each step
+  const getStepStatus = (index: number): StepStatus => {
+    const step = steps[index];
 
-    return () => clearInterval(timer);
-  }, [activeStep]);
+    if (currentStatus >= step.doneStatus) {
+      return "done";
+    }
+
+    if (currentStatus === step.progressStatus) {
+      return "progress";
+    }
+
+    if (currentStatus === step.startStatus) {
+      return "start";
+    }
+
+    return "pending";
+  };
+
+  // Get active step (for stepper)
+  const getActiveStep = () => {
+    for (let i = 0; i < steps.length; i++) {
+      const status = getStepStatus(i);
+      if (status === "progress" || status === "start") return i;
+      if (status === "pending") return i;
+    }
+    return steps.length;
+  };
+
+  const activeStep = getActiveStep();
+
+  const handleStartStep = async (status: string) => {
+    changeFileStatuts(status);
+    navigate(0);
+  };
 
   const handleBack = () => {
     navigate(-1);
   };
 
-  const getStepStatus = (stepIndex: number) => {
-    if (stepIndex < activeStep) return "completed";
-    if (stepIndex === activeStep)
-      return progress[stepIndex] === 100 ? "completed" : "active";
-    return "pending";
-  };
-
-  const togglePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
-  };
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  };
-
   return (
-    <Container maxWidth="md" sx={{ py: isMobile ? 3 : 6 }}>
+    <Container maxWidth="lg" sx={{ py: isMobile ? 3 : 6 }}>
       <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mb: 3 }}>
         Back
       </Button>
-      
-    <br/>
+
+      <br />
 
       <Typography
         variant="h4"
@@ -150,59 +140,17 @@ const ProcessingProgress: React.FC = () => {
           display: "inline-block",
         }}
       >
-        Processing Your File
+        Processing Your File ({data?.name || ""})
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
         We're analyzing your media file. This may take a few minutes depending
         on file size.
       </Typography>
-  {/* Audio Player Section */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          mb: 4,
-          border: `1px solid ${theme.palette.divider}`,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2
-        }}
-      >
-        <Typography variant="h6" component="h2">
-          Audio Preview
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button
-            variant="contained"
-            onClick={togglePlayPause}
-            startIcon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          >
-            {isPlaying ? 'Pause' : 'Play'}
-          </Button>
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="body2">
-              {formatTime(currentTime)}
-            </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={duration ? (currentTime / duration) * 100 : 0}
-              sx={{ flexGrow: 1, height: 8 }}
-            />
-            <Typography variant="body2">
-              {formatTime(duration)}
-            </Typography>
-          </Box>
-        </Box>
-        <audio
-          ref={audioRef}
-          src={audioFileUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => setIsPlaying(false)}
-          hidden
-        />
-      </Paper>
+
+      {/* Audio Player Section */}
+      <AudioPlayer data={data} theme={theme} />
+
       <Paper
         elevation={0}
         sx={{ p: 3, mb: 4, border: `1px solid ${theme.palette.divider}` }}
@@ -211,106 +159,112 @@ const ProcessingProgress: React.FC = () => {
           orientation={isMobile ? "vertical" : "horizontal"}
           activeStep={activeStep}
         >
-          {steps.map((step, index) => (
-            <Step
-              key={step.label}
-              completed={getStepStatus(index) === "completed"}
-            >
-              <StepLabel
-                icon={React.cloneElement(step.icon, {
-                  color:
-                    getStepStatus(index) === "completed"
-                      ? "primary"
-                      : index === activeStep
-                      ? "primary"
-                      : "disabled",
-                })}
-              >
-                {step.label}
-              </StepLabel>
-            </Step>
-          ))}
+          {steps.map((step, index) => {
+            const status = getStepStatus(index);
+            return (
+              <Step key={step.label} completed={status === "done"}>
+                <StepLabel
+                  icon={React.cloneElement(step.icon, {
+                    color:
+                      status === "done"
+                        ? "primary"
+                        : index === activeStep
+                        ? "primary"
+                        : "disabled",
+                  })}
+                >
+                  {step.label}
+                </StepLabel>
+              </Step>
+            );
+          })}
         </Stepper>
       </Paper>
 
       <Box sx={{ mb: 6 }}>
-        {steps.map((step, index) => (
-          <Paper
-            key={step.label}
-            elevation={0}
-            sx={{
-              p: 3,
-              mb: 2,
-              border: `1px solid ${
-                index === activeStep
-                  ? theme.palette.primary.light
-                  : theme.palette.divider
-              }`,
-              backgroundColor:
-                index === activeStep
-                  ? theme.palette.action.hover
-                  : "background.paper",
-            }}
-          >
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+        {steps.map((step, index) => {
+          const status = getStepStatus(index);
+          return (
+            <Paper
+              key={step.label}
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 2,
+                border: `1px solid ${
+                  status === "progress" || status === "start"
+                    ? theme.palette.primary.light
+                    : theme.palette.divider
+                }`,
+                backgroundColor:
+                  status === "progress" || status === "start"
+                    ? theme.palette.action.hover
+                    : "background.paper",
+              }}
             >
-              <Typography
-                variant="h6"
-                sx={{ display: "flex", alignItems: "center", gap: 1 }}
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
               >
-                {React.cloneElement(step.icon, {
-                  color:
-                    getStepStatus(index) === "completed"
-                      ? "primary"
-                      : index === activeStep
-                      ? "primary"
-                      : "action",
-                })}
-                {step.label}
+                <Typography
+                  variant="h6"
+                  sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                >
+                  {React.cloneElement(step.icon, {
+                    color:
+                      status === "done"
+                        ? "primary"
+                        : status === "progress" || status === "start"
+                        ? "primary"
+                        : "action",
+                  })}
+                  {step.label}
+                </Typography>
+                {status === "done" ? (
+                  <Chip
+                    icon={<CheckCircleIcon />}
+                    label="Completed"
+                    color="success"
+                    size="small"
+                  />
+                ) : status === "progress" ? (
+                  <Chip label="In Progress" color="primary" size="small" />
+                ) : status === "start" ? (
+                  <Chip label="Ready to Start" color="info" size="small" />
+                ) : (
+                  <Chip label="Pending" color="default" size="small" />
+                )}
+              </Box>
+
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {step.description}
               </Typography>
-              {getStepStatus(index) === "completed" ? (
-                <Chip
-                  icon={<CheckCircleIcon />}
-                  label="Completed"
-                  color="success"
-                  size="small"
-                />
-              ) : (
-                <Chip
-                  label={
-                    index === activeStep ? `${progress[index]}%` : "Pending"
-                  }
-                  color={index === activeStep ? "primary" : "default"}
-                  size="small"
-                />
+
+              {status === "progress" && (
+                <LinearProgress sx={{ height: 8, borderRadius: 4 }} />
               )}
-            </Box>
 
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              {step.description}
-            </Typography>
-
-            {index === activeStep && (
-              <LinearProgress
-                variant="determinate"
-                value={progress[index]}
-                sx={{ height: 8, borderRadius: 4 }}
-              />
-            )}
-          </Paper>
-        ))}
+              {status === "start" && (
+                <Button
+                  variant="outlined"
+                  startIcon={<PlayArrowIcon />}
+                  onClick={() => handleStartStep(status)}
+                  sx={{ mt: 2 }}
+                >
+                  Start {step.label}
+                </Button>
+              )}
+            </Paper>
+          );
+        })}
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
         <Button
           variant="contained"
           size="large"
-          disabled={
-            activeStep < steps.length - 1 || progress[steps.length - 1] < 100
-          }
+          disabled={currentStatus !== STATUS_MAPPING.done}
           sx={{ px: 4, py: 1.5 }}
-          onClick={() => navigate("/results")} // Update with your results route
+          onClick={() => navigate("/results")}
         >
           View Results
         </Button>
