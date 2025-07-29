@@ -1,5 +1,6 @@
-export interface IFileUploadServiceProps {
-  file: File[];
+export interface IFileUploadServiceRequest {
+  file: File;
+  name:string
 }
 export interface IResponse<T> {
   isSuccess: boolean;
@@ -7,10 +8,10 @@ export interface IResponse<T> {
 }
 
 export interface IFileUploadResponse {
-  file_url: string
-  filename: string
-  file_size: number
-  upload_time: string
-  file_type: string
+  id: string
+  name: string
+  createdAt: string
+  status: string
+  url: string
 }
 

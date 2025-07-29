@@ -10,7 +10,7 @@ function AppRouting() {
   return (
     <Routes>
       <Route path={appRoutes.home} element={<Home />} />
-      <Route path={appRoutes.processingProgress} element={<ProcessingProgress />} />
+      <Route path={`${appRoutes.processingProgress}/:id`} element={<ProcessingProgress />} />
       
       <Route path={appRoutes.uploadFile} element={<UploadFile />} />
       <Route path="/about" element={<About />} />

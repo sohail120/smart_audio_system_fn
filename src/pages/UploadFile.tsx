@@ -10,6 +10,7 @@ import {
   LinearProgress,
   Alert,
   IconButton,
+  TextField,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
@@ -22,13 +23,14 @@ import {
 import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import { appRoutes } from "../routing/appRoutes";
-import { fileUploadService } from "../services/fileUpload.service";
+import { uploadFile } from "../services/files.service";
 
 const UploadFile: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const [files, setFiles] = useState<File[]>([]);
+  const [fileName, setFileName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -36,6 +38,14 @@ const UploadFile: React.FC = () => {
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
+    // Set default file name (without extension) when file is selected
+    if (acceptedFiles.length > 0) {
+      const originalName = acceptedFiles[0].name;
+      const nameWithoutExtension = originalName.lastIndexOf('.') > 0 
+        ? originalName.substring(0, originalName.lastIndexOf('.'))
+        : originalName;
+      setFileName(nameWithoutExtension);
+    }
     setUploadError(null);
     setUploadSuccess(false);
   }, []);
@@ -51,6 +61,7 @@ const UploadFile: React.FC = () => {
 
   const handleRemoveFile = () => {
     setFiles([]);
+    setFileName("");
     setUploadError(null);
   };
 
@@ -65,9 +76,9 @@ const UploadFile: React.FC = () => {
     setUploadProgress(0);
     setUploadError(null);
     setUploadSuccess(false);
-    const reponse = await fileUploadService({ file: files });
-    if (reponse.isSuccess) {
-      navigate(appRoutes.processingProgress);
+    const response = await uploadFile({ file: files[0], name: fileName });
+    if (response.isSuccess) {
+      navigate(`${appRoutes.processingProgress}/${response.data.id}`);
     }
     setIsUploading(false);
   };
@@ -133,32 +144,45 @@ const UploadFile: React.FC = () => {
       </Paper>
 
       {files.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 3, mb: 4 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Stack>
-              <Typography variant="subtitle1">{files[0].name}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {(files[0].size / (1024 * 1024)).toFixed(2)} MB
-              </Typography>
+        <>
+          <Paper variant="outlined" sx={{ p: 3, mb: 4 }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 2 }}
+            >
+              <Stack>
+                <Typography variant="subtitle1">{files[0].name}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {(files[0].size / (1024 * 1024)).toFixed(2)} MB
+                </Typography>
+              </Stack>
+              <IconButton onClick={handleRemoveFile} color="error">
+                <CloseIcon />
+              </IconButton>
             </Stack>
-            <IconButton onClick={handleRemoveFile} color="error">
-              <CloseIcon />
-            </IconButton>
-          </Stack>
 
-          {isUploading && (
-            <Box sx={{ mt: 2 }}>
-              <LinearProgress variant="determinate" value={uploadProgress} />
-              <Typography variant="caption" color="text.secondary">
-                {uploadProgress}% uploaded
-              </Typography>
-            </Box>
-          )}
-        </Paper>
+            <TextField
+              fullWidth
+              label="File Name"
+              value={fileName}
+              onChange={(e) => setFileName(e.target.value)}
+              variant="outlined"
+              sx={{ mt: 2 }}
+              helperText="Enter a name for your file (without extension)"
+            />
+
+            {isUploading && (
+              <Box sx={{ mt: 2 }}>
+                <LinearProgress variant="determinate" value={uploadProgress} />
+                <Typography variant="caption" color="text.secondary">
+                  {uploadProgress}% uploaded
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </>
       )}
 
       {uploadError && (
@@ -181,7 +205,7 @@ const UploadFile: React.FC = () => {
           variant="contained"
           size="large"
           onClick={handleUpload}
-          disabled={files.length === 0 || isUploading}
+          disabled={files.length === 0 || isUploading || !fileName.trim()}
           sx={{ px: 4, py: 1.5 }}
         >
           {isUploading ? "Uploading..." : "Process File"}
