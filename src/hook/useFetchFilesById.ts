@@ -1,28 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getFiles } from "../services/files.service";
 import type { IFileUploadResponse } from "../types";
 
 function useFetchFilesById(id: string) {
-  const [data, setData] = useState<IFileUploadResponse|null>(null);
+  const [data, setData] = useState<IFileUploadResponse | null>(null);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getFiles(id);
-        setData(response.data);
-      } catch (err) {
-        setError(`${err}`);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError("");
 
-    fetchData();
+    try {
+      const response = await getFiles(id);
+      setData(response.data);
+    } catch (err) {
+      setError(`${err}`);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  return { data, isLoading, error };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, isLoading, error, refetch: fetchData };
 }
 
 export default useFetchFilesById;

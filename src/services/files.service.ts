@@ -1,7 +1,8 @@
-import type {
-  IFileUploadResponse,
-  IFileUploadServiceRequest,
-  IResponse,
+import {
+  STATUS_MAPPING,
+  type IFileUploadResponse,
+  type IFileUploadServiceRequest,
+  type IResponse,
 } from "../types";
 import apiClient from "./apiClient";
 import { apiUrls } from "./apiUrls";
@@ -39,12 +40,38 @@ const getFiles = async (
   }
 };
 const changeFileStatuts = async (
-  id: string
+  status: string,
+  id: string,
 ): Promise<IResponse<IFileUploadResponse>> => {
   try {
-    const response: IFileUploadResponse = await apiClient.get(
-      `${apiUrls.getById}/${id}`
-    );
+    let url = "";
+    switch (Number(status)) {
+      case STATUS_MAPPING.upload:
+        url = apiUrls.speakerIdentification;
+        break;
+
+      case STATUS_MAPPING.done_speaker_identification:
+        url = apiUrls.speakerDiarization;
+        break;
+
+      case STATUS_MAPPING.done_speaker_diarization:
+        url = apiUrls.speechRecognition;
+        break;
+
+      case STATUS_MAPPING.done_speech_recognition:
+        url = apiUrls.languageIdentification;
+        break;
+
+      case STATUS_MAPPING.done_language_identification:
+        url = apiUrls.neuralTranslation;
+        break;
+
+        break;
+      default:
+        url = apiUrls.speakerIdentification;
+        break;
+    }
+    const response: IFileUploadResponse = await apiClient.put(`${url}/${id}`);
     return { isSuccess: true, data: response };
   } catch (error) {
     console.error("uploadFile", error);

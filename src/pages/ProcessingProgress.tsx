@@ -13,6 +13,7 @@ import {
   Chip,
   useTheme,
   useMediaQuery,
+  IconButton,
 } from "@mui/material";
 import {
   Face as FaceIcon,
@@ -23,6 +24,7 @@ import {
   ArrowBack as ArrowBackIcon,
   PlayArrow as PlayArrowIcon,
   Translate,
+  Refresh,
 } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import useFetchFilesById from "../hook/useFetchFilesById";
@@ -38,7 +40,7 @@ const ProcessingProgress: React.FC = () => {
   const { id } = useParams();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
-  const { data } = useFetchFilesById(id || "");
+  const { data, refetch } = useFetchFilesById(id || "");
 
   const steps = [
     {
@@ -78,7 +80,8 @@ const ProcessingProgress: React.FC = () => {
     {
       label: "Neural Translation",
       icon: <Translate />, // You'll need to import this icon
-      description: "Translate transcribed text to English with speaker segmentation.",
+      description:
+        "Translate transcribed text to English with speaker segmentation.",
       startStatus: STATUS_MAPPING.done_speech_recognition,
       progressStatus: STATUS_MAPPING.processing_neural_translation,
       doneStatus: STATUS_MAPPING.done_neural_translation,
@@ -122,8 +125,8 @@ const ProcessingProgress: React.FC = () => {
   const activeStep = getActiveStep();
 
   const handleStartStep = async (status: string) => {
-    changeFileStatuts(status);
-    navigate(0);
+    await changeFileStatuts(status, data?.id || "");
+    refetch();
   };
 
   const handleBack = () => {
@@ -249,9 +252,15 @@ const ProcessingProgress: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {step.description}
               </Typography>
-
               {status === "progress" && (
-                <LinearProgress sx={{ height: 8, borderRadius: 4 }} />
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <LinearProgress sx={{ height: 8, borderRadius: 4 ,width:"98%"}} />
+                  <IconButton
+                    onClick={refetch}
+                  >
+                    <Refresh />
+                  </IconButton>
+                </Box>
               )}
 
               {status === "start" && (
