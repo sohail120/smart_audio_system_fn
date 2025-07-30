@@ -63,7 +63,7 @@ const ProcessingProgress: React.FC = () => {
       label: "Speech Recognition",
       icon: <SubtitlesIcon />,
       description: "Converting speech to text",
-      startStatus: STATUS_MAPPING.done_language_identification,
+      startStatus: STATUS_MAPPING.done_speaker_diarization,
       progressStatus: STATUS_MAPPING.processing_speech_recognition,
       doneStatus: STATUS_MAPPING.done_speech_recognition,
     },
@@ -72,7 +72,7 @@ const ProcessingProgress: React.FC = () => {
       label: "Language Identification",
       icon: <LanguageIcon />,
       description: "Detecting languages in each segment",
-      startStatus: STATUS_MAPPING.done_speaker_diarization,
+      startStatus: STATUS_MAPPING.done_speech_recognition,
       progressStatus: STATUS_MAPPING.processing_language_identification,
       doneStatus: STATUS_MAPPING.done_language_identification,
     },
@@ -82,7 +82,7 @@ const ProcessingProgress: React.FC = () => {
       icon: <Translate />, // You'll need to import this icon
       description:
         "Translate transcribed text to English with speaker segmentation.",
-      startStatus: STATUS_MAPPING.done_speech_recognition,
+      startStatus: STATUS_MAPPING.done_language_identification,
       progressStatus: STATUS_MAPPING.processing_neural_translation,
       doneStatus: STATUS_MAPPING.done_neural_translation,
     },
@@ -125,6 +125,7 @@ const ProcessingProgress: React.FC = () => {
   const activeStep = getActiveStep();
 
   const handleStartStep = async (status: string) => {
+    console.log("Starting step with status:", status);
     await changeFileStatuts(status, data?.id || "");
     refetch();
   };
@@ -254,10 +255,10 @@ const ProcessingProgress: React.FC = () => {
               </Typography>
               {status === "progress" && (
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <LinearProgress sx={{ height: 8, borderRadius: 4 ,width:"98%"}} />
-                  <IconButton
-                    onClick={refetch}
-                  >
+                  <LinearProgress
+                    sx={{ height: 8, borderRadius: 4, width: "98%" }}
+                  />
+                  <IconButton onClick={refetch}>
                     <Refresh />
                   </IconButton>
                 </Box>
@@ -267,7 +268,7 @@ const ProcessingProgress: React.FC = () => {
                 <Button
                   variant="outlined"
                   startIcon={<PlayArrowIcon />}
-                  onClick={() => handleStartStep(status)}
+                  onClick={() => handleStartStep(data?.status || "")}
                   sx={{ mt: 2 }}
                 >
                   Start {step.label}

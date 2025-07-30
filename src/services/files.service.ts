@@ -44,6 +44,7 @@ const changeFileStatuts = async (
   id: string,
 ): Promise<IResponse<IFileUploadResponse|null>> => {
   try {
+    console.log("changeFileStatuts", status, id);
     let url = "";
     switch (Number(status)) {
       case STATUS_MAPPING.upload:
@@ -66,7 +67,7 @@ const changeFileStatuts = async (
         url = apiUrls.neuralTranslation;
         break;
 
-        break;
+
       default:
         url = apiUrls.speakerIdentification;
         break;
