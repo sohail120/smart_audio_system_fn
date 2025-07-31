@@ -31,6 +31,7 @@ import useFetchFilesById from "../hook/useFetchFilesById";
 import AudioPlayer from "../components/AudioPlayer";
 import { STATUS_MAPPING } from "../types";
 import { changeFileStatuts } from "../services/files.service";
+import { appRoutes } from "../routing/appRoutes";
 
 // Simplified step status type
 type StepStatus = "pending" | "start" | "progress" | "done";
@@ -283,9 +284,9 @@ const ProcessingProgress: React.FC = () => {
         <Button
           variant="contained"
           size="large"
-          disabled={currentStatus !== STATUS_MAPPING.done_neural_translation}
+          // disabled={currentStatus !== STATUS_MAPPING.done_neural_translation}
           sx={{ px: 4, py: 1.5 }}
-          onClick={() => navigate("/results")}
+          onClick={() => navigate(`${appRoutes.result}/${data?.id}`)}
         >
           View Results
         </Button>

@@ -5,6 +5,7 @@ import NotFound from "../pages/NotFound";
 import { appRoutes } from "./appRoutes";
 import UploadFile from "../pages/UploadFile";
 import ProcessingProgress from "../pages/ProcessingProgress";
+import ResultsPage from "../pages/Result";
 
 function AppRouting() {
   return (
@@ -13,6 +14,8 @@ function AppRouting() {
       <Route path={`${appRoutes.processingProgress}/:id`} element={<ProcessingProgress />} />
       
       <Route path={appRoutes.uploadFile} element={<UploadFile />} />
+      <Route path={`${appRoutes.result}/:id`} element={<ResultsPage />} />
+
       <Route path="/about" element={<About />} />
 
       <Route path="*" element={<NotFound />} />

@@ -3,6 +3,7 @@ export const baseURl = "http://127.0.0.1:5000";
 export const apiUrls = {
   uploadFile: `${baseURl}/files`,
   getById: `${baseURl}/files`,
+  getResultById: `${baseURl}/files/result`,
   neuralTranslation:`${baseURl}/files/neural-translation`,
   languageIdentification: `${baseURl}/files/language-identification`,
   speakerIdentification: `${baseURl}/files/speaker-identification`,

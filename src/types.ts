@@ -47,3 +47,21 @@ export enum STATUS_API {
   done_language_identification = 8,
   done = 9,
 }
+
+
+export interface Segment {
+  speaker: string;
+  start: number;
+  end: number;
+  transcript: string;
+  language: string;
+  tranlate: string;
+}
+
+ export interface TranscriptionData {
+  id: string;
+  totalSpeakers: number;
+  segment: Segment[];
+}
+
+

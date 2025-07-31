@@ -3,13 +3,14 @@ import {
   type IFileUploadResponse,
   type IFileUploadServiceRequest,
   type IResponse,
+  type TranscriptionData,
 } from "../types";
 import apiClient from "./apiClient";
 import { apiUrls } from "./apiUrls";
 
 const uploadFile = async (
   payload: IFileUploadServiceRequest
-): Promise<IResponse<IFileUploadResponse|null>> => {
+): Promise<IResponse<IFileUploadResponse | null>> => {
   const formData = new FormData();
   formData.append("file", payload.file); // Assuming file is an array, we take the first file
   formData.append("name", payload.name);
@@ -28,7 +29,7 @@ const uploadFile = async (
 
 const getFiles = async (
   id: string
-): Promise<IResponse<IFileUploadResponse|null>> => {
+): Promise<IResponse<IFileUploadResponse | null>> => {
   try {
     const response: IFileUploadResponse = await apiClient.get(
       `${apiUrls.getById}/${id}`
@@ -41,8 +42,8 @@ const getFiles = async (
 };
 const changeFileStatuts = async (
   status: string,
-  id: string,
-): Promise<IResponse<IFileUploadResponse|null>> => {
+  id: string
+): Promise<IResponse<IFileUploadResponse | null>> => {
   try {
     console.log("changeFileStatuts", status, id);
     let url = "";
@@ -67,7 +68,6 @@ const changeFileStatuts = async (
         url = apiUrls.neuralTranslation;
         break;
 
-
       default:
         url = apiUrls.speakerIdentification;
         break;
@@ -76,8 +76,19 @@ const changeFileStatuts = async (
     return { isSuccess: true, data: response };
   } catch (error) {
     console.error("uploadFile", error);
-    return { isSuccess: false, data: null  }; // Return null for data on error
+    return { isSuccess: false, data: null }; // Return null for data on error
   }
 };
 
-export { uploadFile, getFiles, changeFileStatuts };
+const getResultFile = async (id:string): Promise<IResponse<TranscriptionData|null>> => {
+   try {
+    const response: TranscriptionData = await apiClient.get(
+      `${apiUrls.getResultById}/${id}`
+    );
+    return { isSuccess: true, data: response };
+  } catch (error) {
+    console.error("uploadFile", error);
+    return { isSuccess: false, data: null }; // Return null for data on error
+  }
+};
+export { uploadFile, getFiles, changeFileStatuts, getResultFile };
